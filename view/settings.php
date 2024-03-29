@@ -30,13 +30,11 @@
             <label for="jh-new-login-url"><?php esc_html_e("Add New Login Slug","admin-login-url-change"); ?></label>
             <input type="text" name="jh_new_login_url" id="jh-new-login-url" placeholder="Example: newadmin/adminlogin .... etc" value="<?php if(!empty($this->admin_login_url_info['jh_new_login_url'])){ echo esc_html($this->admin_login_url_info['jh_new_login_url']); } ?>" <?php echo ( ! current_user_can( 'unfiltered_html' ) ) ? ' disabled="disabled" ' : ''; ?> />
          </p>
-         
-          <?php if ( current_user_can( 'unfiltered_html' ) ) { ?>
-         <?php wp_nonce_field( $this->plugin->name, $this->plugin->name . '_nonce' ); ?>
+      
+         <?php wp_nonce_field( 'jh_login_url_nonce_action', 'jh_login_url_nonce' ); ?>
          <p>
             <input type='submit' name='but_submit' value='<?php esc_attr_e("Submit","admin-login-url-change"); ?>'>
          </p>
-        <?php } ?>
       </form>
    </div>
 </div>

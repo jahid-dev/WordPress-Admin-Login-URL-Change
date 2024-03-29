@@ -1,9 +1,9 @@
 <?php
 /**
  * Plugin Name:       Admin login URL Change
- * Plugin URI:        https://themefic.com/
+ * Plugin URI:        https://wordpress.org/plugins/admin-login-url-change/
  * Description:       Allows you to Change your WordPress WebSite Login URL.
- * Version:           1.0.5
+ * Version:           1.0.6
  * Requires at least: 4.7
  * Tested up to: 6.4
  * Requires PHP:      5.3
@@ -83,18 +83,17 @@ function admin_login_url_change_page_settings( $links ) {
 function settingsPanel() {
 
 if ( ! current_user_can( 'manage_options' ) ) {
-  wp_die( __( 'Sorry, you are not allowed to access this page.', 'admin-login-url-change' ) );
+  wp_die( esc_html__( 'Sorry, you are not allowed to access this page.', 'admin-login-url-change' ) );
 }
 
-if(isset($_REQUEST['but_submit'])){
-    if ( ! current_user_can( 'unfiltered_html' ) ) {
-      wp_die( __( 'Sorry, you are not allowed to access this page.', 'admin-login-url-change' ) );
-    } elseif ( !isset( $_REQUEST[ $this->plugin->name . '_nonce' ] ) ) {
-      $this->errorMessage = __( 'nonce field is missing. Settings NOT saved.', 'admin-login-url-change' );
-    }else{
-    update_option( 'jh_new_login_url', sanitize_text_field($_REQUEST['jh_new_login_url']) );
-    $this->message = __( 'Settings Saved.', 'admin-login-url-change' );
+  if(isset($_REQUEST['but_submit'])){
+    // Check if a nonce is valid.
+    if (  !isset( $_POST['jh_login_url_nonce'] ) || !wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['jh_login_url_nonce'] ) ), 'jh_login_url_nonce_action' ) ) {
+      return;
     }
+    
+    update_option( 'jh_new_login_url', sanitize_text_field($_REQUEST['jh_new_login_url']) );
+    $this->message = esc_html__( 'Settings Saved.', 'admin-login-url-change' );
   }
   $this->admin_login_url_info = array(
     'jh_new_login_url' => esc_html( wp_unslash( get_option( 'jh_new_login_url' ) ) ),
@@ -121,10 +120,12 @@ function admin_login_url_change_css(){
 function admin_login_url_change_redirect_error_page(){
 
   $jh_new_login = wp_unslash(get_option( 'jh_new_login_url' ));
-  if(strpos($_SERVER['REQUEST_URI'], $jh_new_login) === false){
-    wp_safe_redirect( home_url( '404' ), 302 );
-    exit(); 
-  } 
+  if(!empty($jh_new_login)){
+    if(strpos($_SERVER['REQUEST_URI'], $jh_new_login) === false){
+      wp_safe_redirect( home_url( '404' ), 302 );
+      exit(); 
+    } 
+  }
 }
 
 /**
@@ -134,7 +135,7 @@ function admin_login_url_change_redirect_error_page(){
 function admin_login_url_change_redirect_success_page(){
   $jh_new_login = wp_unslash(get_option( 'jh_new_login_url' ));
   if(!empty($jh_new_login)){
-    $jh_wp_admin_login_current_url_path=parse_url($_SERVER['REQUEST_URI']);
+    $jh_wp_admin_login_current_url_path=wp_parse_url($_SERVER['REQUEST_URI']);
 
     if($jh_wp_admin_login_current_url_path["path"] == '/'.$jh_new_login){
       wp_safe_redirect(home_url("wp-login.php?$jh_new_login&redirect=false"));
